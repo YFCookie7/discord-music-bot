@@ -1,9 +1,13 @@
 import asyncio
 import discord
 from discord.ext import commands
-import json
+import yt_dlp
+import os
+
+MP3_PATH = "C:/Users/mikel/Documents/Github/discord-music-bot/"
 
 class Chat(commands.Cog):
+    
 
     def __init__(self, bot):
         self.bot = bot
@@ -35,10 +39,31 @@ class Chat(commands.Cog):
 
     @discord.slash_command(description="Play music")
     async def play(self ,ctx):
+        if ctx.voice_client is not None:
+            return await ctx.send("Already playing audio.")
+        
+        video_url = 'https://www.youtube.com/watch?v=9i38FPugxB8'
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '256',
+            }],
+        }
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(video_url, download=True)
+            audio_filename = ydl.prepare_filename(info)
+        audio_filename = audio_filename[:-5] +".mp3"
+        
         channel = ctx.author.voice.channel
         voice = await channel.connect()
-        voice.play(discord.FFmpegPCMAudio(executable="C:/ffmpeg/ffmpeg.exe", source=r"C:/Users/mikel/Desktop/Rick Roll Sound Effect.mp3"))
+        voice.play(discord.FFmpegPCMAudio(executable="C:/ffmpeg/ffmpeg.exe", source=MP3_PATH+audio_filename))
 
+
+        # voice.play(discord.FFmpegPCMAudio(executable="C:/ffmpeg/ffmpeg.exe", source=r"C:/Users/mikel/Desktop/Rick Roll Sound Effect.mp3"))
+        #
         while voice.is_playing():
             await asyncio.sleep(10)
         voice.stop()
