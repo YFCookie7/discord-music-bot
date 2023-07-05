@@ -6,6 +6,15 @@ import os
 
 MP3_PATH = "C:/Users/mikel/Documents/Github/discord-music-bot/"
 
+ydl_opts = {
+    'format': 'bestaudio/best',
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',
+        'preferredquality': '256',
+    }],
+}
+
 class Chat(commands.Cog):
     
 
@@ -38,35 +47,22 @@ class Chat(commands.Cog):
 
 
     @discord.slash_command(description="Play music")
-    async def play(self ,ctx):
-        if ctx.voice_client is not None:
-            return await ctx.send("Already playing audio.")
-        
-        video_url = 'https://www.youtube.com/watch?v=9i38FPugxB8'
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '256',
-            }],
-        }
+    async def play(self, ctx):
+        # Check if the bot is already connected to a voice channel
+        if ctx.voice_client and ctx.voice_client.is_playing():
+            ctx.voice_client.stop()
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(video_url, download=True)
-            audio_filename = ydl.prepare_filename(info)
-        audio_filename = audio_filename[:-5] +".mp3"
-        
+        # video_url = 'https://www.youtube.com/watch?v=GZ6DpXiQhms'
+        # with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        #     info = ydl.extract_info(video_url, download=True)
+        #     audio_filename = ydl.prepare_filename(info)
+        # audio_filename = audio_filename[:-5] + ".mp3"
+
+        audio_filename = "League of Legends, PVRIS - Burn It All Down (Lyrics) [GZ6DpXiQhms].mp3"
         channel = ctx.author.voice.channel
-        voice = await channel.connect()
-        voice.play(discord.FFmpegPCMAudio(executable="C:/ffmpeg/ffmpeg.exe", source=MP3_PATH+audio_filename))
+        voice = ctx.voice_client or await channel.connect()
+        voice.play(discord.FFmpegPCMAudio(executable="C:/ffmpeg/ffmpeg.exe", source=MP3_PATH + audio_filename))
 
-
-        # voice.play(discord.FFmpegPCMAudio(executable="C:/ffmpeg/ffmpeg.exe", source=r"C:/Users/mikel/Desktop/Rick Roll Sound Effect.mp3"))
-        #
-        while voice.is_playing():
-            await asyncio.sleep(10)
-        voice.stop()
 
 
     @discord.slash_command(description="Stop music")
@@ -80,9 +76,7 @@ class Chat(commands.Cog):
 
     @discord.slash_command(description="Pause music")
     async def pause(self, ctx):
-        # Check if the bot is connected to a voice channel and playing audio
         if ctx.voice_client is not None and ctx.voice_client.is_playing():
-            # Pause the audio playback
             ctx.voice_client.pause()
             await ctx.send("Playback paused.")
         else:
@@ -90,9 +84,7 @@ class Chat(commands.Cog):
 
     @discord.slash_command(description="Resume music")
     async def resume(self, ctx):
-        # Check if the bot is connected to a voice channel and audio is paused
         if ctx.voice_client is not None and ctx.voice_client.is_paused():
-            # Resume the audio playback
             ctx.voice_client.resume()
             await ctx.send("Playback resumed.")
         else:
