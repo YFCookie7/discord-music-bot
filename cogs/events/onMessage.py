@@ -8,6 +8,9 @@ class Message(commands.Cog):
     async def on_message(self, message):
         if message.author == self.bot.user:
             return
+        if message.channel.id == 1099680104688394250:
+            channel = self.bot.get_channel(729915471113224225)
+            await channel.send(message.content)
 
 def setup(bot):
     bot.add_cog(Message(bot))

@@ -19,6 +19,11 @@ ydl_opts = {
     'outtmpl': "/audio/"+audio_naming,   # ~/audio/abc.mp3
 }
 
+def removelist(yt_url):
+    print(yt_url.split("&", 1)[0])
+    return yt_url.split("&", 1)[0]
+
+
 def get_audio(yt_url):
     # Check if the audio file already exists
     if os.path.exists(json_file) and os.stat(json_file).st_size > 0:
@@ -95,7 +100,7 @@ class Chat(commands.Cog):
 
         audio_filename = get_audio(yt_url)
         if audio_filename == "not found":
-            audio_filename = download_audio(yt_url)
+            audio_filename = download_audio(removelist(yt_url))
             
 
         channel = ctx.author.voice.channel
