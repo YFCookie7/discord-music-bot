@@ -1,10 +1,9 @@
-import asyncio
 import discord
 from discord.ext import commands
 import yt_dlp
-import os
 
-MP3_PATH = "C:/Users/mikel/Documents/Github/discord-music-bot/"
+audio_dir = "C:/Users/mikel/Documents/Github/discord-music-bot/audio/" 
+audio_naming = f"%(title)s.%(ext)s"
 
 ydl_opts = {
     'format': 'bestaudio/best',
@@ -13,18 +12,18 @@ ydl_opts = {
         'preferredcodec': 'mp3',
         'preferredquality': '256',
     }],
+    'outtmpl': "/audio/"+audio_naming,   # ~/audio/abc.mp3
 }
 
 class Chat(commands.Cog):
     
-
     def __init__(self, bot):
         self.bot = bot
 
     @discord.slash_command(description="Tutorial for interacting with music bot")
     async def help(self ,ctx):
         await ctx.defer()
-        await ctx.respond("hello")
+        await ctx.respond("no help")
 
 
     @discord.slash_command(description="Add the bot to voice channel")
@@ -47,21 +46,27 @@ class Chat(commands.Cog):
 
 
     @discord.slash_command(description="Play music")
-    async def play(self, ctx):
+    async def play(self, ctx, yt_url: discord.Option(str, description="Input youtube URL", required = True)):
         # Check if the bot is already connected to a voice channel
         if ctx.voice_client and ctx.voice_client.is_playing():
             ctx.voice_client.stop()
 
-        # video_url = 'https://www.youtube.com/watch?v=GZ6DpXiQhms'
-        # with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        #     info = ydl.extract_info(video_url, download=True)
-        #     audio_filename = ydl.prepare_filename(info)
-        # audio_filename = audio_filename[:-5] + ".mp3"
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(yt_url, download=True)
+            title = info['title']
+            ext = info['ext']
+            audio_file = ydl.prepare_filename(info)
+            audio_filename = (f"{title}.{ext}")[:-5] + ".mp3"
 
-        audio_filename = "League of Legends, PVRIS - Burn It All Down (Lyrics) [GZ6DpXiQhms].mp3"
+        data = {
+            'audio_filename': audio_filename,
+            'yt_url': yt_url
+        }
+
         channel = ctx.author.voice.channel
         voice = ctx.voice_client or await channel.connect()
-        voice.play(discord.FFmpegPCMAudio(executable="C:/ffmpeg/ffmpeg.exe", source=MP3_PATH + audio_filename))
+        voice.play(discord.FFmpegPCMAudio(executable="C:/ffmpeg/ffmpeg.exe", source=audio_dir + audio_filename))
+
 
 
 
@@ -81,6 +86,7 @@ class Chat(commands.Cog):
             await ctx.send("Playback paused.")
         else:
             await ctx.send("No audio is currently playing.")
+
 
     @discord.slash_command(description="Resume music")
     async def resume(self, ctx):
@@ -132,9 +138,6 @@ class Chat(commands.Cog):
     #             return
     #         curr_model=data['default_model']
     #         await ctx.respond(f'{ctx.author.mention}, The current chatbot model is `{curr_model}`!')
-
-
-    
 
 def setup(bot):
     bot.add_cog(Chat(bot))
