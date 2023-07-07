@@ -39,9 +39,10 @@ def download_audio(yt_url):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(yt_url, download=True)
         title = info['title']
-        ext = info['ext']
+        ext = "mp3"
         audio_file = ydl.prepare_filename(info)
-        audio_filename = (f"{title}.{ext}")[:-5] + ".mp3"
+        audio_filename = (f"{title}.{ext}")
+        print("Downloaded: " + audio_filename)
 
     # Save the audio data to json
     data = {
@@ -62,7 +63,7 @@ def download_audio(yt_url):
     return audio_filename
 
 
-class Chat(commands.Cog):
+class Play(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
@@ -130,4 +131,4 @@ class Chat(commands.Cog):
             await ctx.send("Audio is not currently paused.")
 
 def setup(bot):
-    bot.add_cog(Chat(bot))
+    bot.add_cog(Play(bot))
