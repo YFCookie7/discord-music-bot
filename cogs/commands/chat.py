@@ -6,7 +6,7 @@ import json
 
 audio_dir = "C:/Users/mikel/Documents/Github/discord-music-bot/audio/" 
 audio_naming = f"%(title)s.%(ext)s"
-json_file = "playlist.json"
+json_file = "audio.json"
 FFMPEG_PATH = "C:/ffmpeg/ffmpeg.exe"
 
 ydl_opts = {
@@ -17,12 +17,11 @@ ydl_opts = {
         'preferredquality': '256',
     }],
     'outtmpl': "/audio/"+audio_naming,   # ~/audio/abc.mp3
+    "quiet": True,
 }
 
 def removelist(yt_url):
-    print(yt_url.split("&", 1)[0])
     return yt_url.split("&", 1)[0]
-
 
 def get_audio(yt_url):
     # Check if the audio file already exists
@@ -36,6 +35,7 @@ def get_audio(yt_url):
 
 def download_audio(yt_url):
     # Download the audio file if it does not exist
+    print("Downloading: " + yt_url)
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(yt_url, download=True)
         title = info['title']
@@ -63,7 +63,7 @@ def download_audio(yt_url):
 
 
 class Chat(commands.Cog):
-    
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -71,7 +71,6 @@ class Chat(commands.Cog):
     async def help(self ,ctx):
         await ctx.defer()
         await ctx.respond("no help")
-
 
     @discord.slash_command(description="Add the bot to voice channel")
     async def join(self ,ctx):
@@ -82,7 +81,6 @@ class Chat(commands.Cog):
             await ctx.respond("Bot is now in voice channel")
         else:
             await ctx.respond("You have to join the voice channel first")
-            
 
     @discord.slash_command(description="Remove the bot from voice channel")
     async def quit(self ,ctx):
@@ -91,24 +89,21 @@ class Chat(commands.Cog):
             await ctx.voice_client.disconnect()
         await ctx.respond("Bot has left the voice channel")
 
-
     @discord.slash_command(description="Play music")
     async def play(self, ctx, yt_url: discord.Option(str, description="Input youtube URL", required = True)):
         # Stop the current audio if it is playing
         if ctx.voice_client and ctx.voice_client.is_playing():
             ctx.voice_client.stop()
 
+        yt_url=removelist(yt_url)
         audio_filename = get_audio(yt_url)
         if audio_filename == "not found":
-            audio_filename = download_audio(removelist(yt_url))
-            
+            audio_filename = download_audio(yt_url)
 
         channel = ctx.author.voice.channel
         voice = ctx.voice_client or await channel.connect()
+        print("Now playing: " + audio_filename)
         voice.play(discord.FFmpegPCMAudio(executable=FFMPEG_PATH, source=audio_dir + audio_filename))
-
-
-
 
     @discord.slash_command(description="Stop music")
     async def stop(self ,ctx):
@@ -118,7 +113,6 @@ class Chat(commands.Cog):
         else:
             await ctx.send("No audio is currently playing.")
 
-
     @discord.slash_command(description="Pause music")
     async def pause(self, ctx):
         if ctx.voice_client is not None and ctx.voice_client.is_playing():
@@ -127,7 +121,6 @@ class Chat(commands.Cog):
         else:
             await ctx.send("No audio is currently playing.")
 
-
     @discord.slash_command(description="Resume music")
     async def resume(self, ctx):
         if ctx.voice_client is not None and ctx.voice_client.is_paused():
@@ -135,49 +128,6 @@ class Chat(commands.Cog):
             await ctx.send("Playback resumed.")
         else:
             await ctx.send("Audio is not currently paused.")
-    
-        
-        
-
-
-    # @discord.slash_command(name="prompt", description="Predefine bot's behavior")
-    # async def prompt(self,
-    #     ctx,
-    #     prompt: discord.Option(discord.SlashCommandOptionType.string)
-    # ):
-    #     await update_prompt(prompt)
-    #     await ctx.respond(f"New prompt: `{prompt}`.")
-
-
-    # @discord.slash_command(description="Erase Conversation Memory")
-    # async def erase(self, ctx):
-    #     await ctx.defer()
-    #     await erase()
-    #     await ctx.respond(f"{ctx.author.mention}, ChatBot memory erased!")
-
-
-    # async def get_ai_model(ctx: discord.AutocompleteContext):
-    #     return ["gpt-3.5-turbo", "gpt-3.5-turbo-0301", "text-davinci-003", "text-davinci-002"]
-
-    # @discord.slash_command(name="model", description="Select AI Model")
-    # async def model_command( self,
-    # ctx: discord.ApplicationContext,
-    # ai_model: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(get_ai_model), description="Select AI Model", required = False, default = '')
-    # ):
-    #     await ctx.defer()
-    #     with open('config.json', "r+") as f:
-    #         data = json.load(f)
-
-            
-    #         if (ai_model!=''):
-    #             data['default_model'] = ai_model
-    #             f.seek(0)
-    #             json.dump(data, f, indent=4)
-    #             f.truncate()
-    #             await ctx.respond(f'{ctx.author.mention}, Chatbot model is switched to `{ai_model}`!')
-    #             return
-    #         curr_model=data['default_model']
-    #         await ctx.respond(f'{ctx.author.mention}, The current chatbot model is `{curr_model}`!')
 
 def setup(bot):
     bot.add_cog(Chat(bot))
