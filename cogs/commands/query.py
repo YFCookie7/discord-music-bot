@@ -10,7 +10,6 @@ class Query(commands.Cog):
     @discord.slash_command(description="Search youtube")
     async def query(self, ctx, yt_url: discord.Option(str, description="Search youtube", required = True)):
         await ctx.defer()
-
     
 
 def setup(bot):
