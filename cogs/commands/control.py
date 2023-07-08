@@ -25,17 +25,17 @@ class Control(commands.Cog):
     async def pause(self, ctx):
         if ctx.voice_client is not None and ctx.voice_client.is_playing():
             ctx.voice_client.pause()
-            await ctx.send("Playback paused.")
+            await ctx.respond("Playback paused.")
         else:
-            await ctx.send("No audio is currently playing.")
+            await ctx.respond("No audio is currently playing.")
 
     @discord.slash_command(description="Resume music")
     async def resume(self, ctx):
         if ctx.voice_client is not None and ctx.voice_client.is_paused():
             ctx.voice_client.resume()
-            await ctx.send("Playback resumed.")
+            await ctx.respond("Playback resumed.")
         else:
-            await ctx.send("Audio is not currently paused.")
+            await ctx.respond("Audio is not currently paused.")
             
     @discord.slash_command(description="Stop music")
     async def stop(self ,ctx):
@@ -43,7 +43,7 @@ class Control(commands.Cog):
             ctx.voice_client.stop()
             self.ctx = None
         else:
-            await ctx.send("No audio is currently playing.")
+            await ctx.respond("No audio is currently playing.")
 
     @discord.slash_command(description="Remove the bot from voice channel")
     async def quit(self ,ctx):
