@@ -1,12 +1,10 @@
 import yt_dlp
 import os
 import json
-import discord
 from discord.ext import commands
 
-
 audio_dir = "C:/Users/mikel/Documents/Github/discord-music-bot/audio/" 
-audio_naming = f"%(title)s.%(ext)s"
+# audio_naming = f"%(title)s.%(ext)s"
 json_file = "audio.json"
 FFMPEG_PATH = "C:/ffmpeg/ffmpeg.exe"
 
@@ -17,12 +15,14 @@ ydl_opts = {
         'preferredcodec': 'mp3',
         'preferredquality': '256',
     }],
-    'outtmpl': "/audio/"+audio_naming,   # ~/audio/abc.mp3
+    'outtmpl': "/audio/%(title)s.%(ext)s",   # ~/audio/abc.mp3
     "quiet": True,
 }
 
 def removelist(yt_url):
     return yt_url.split("&", 1)[0]
+
+
 
 def get_audio(yt_url):
     # Check if the audio file already exists
@@ -34,18 +34,13 @@ def get_audio(yt_url):
                 return data.get('audio_filename')
     return "not found"
 
+
 def download_audio(yt_url):
-    # Download the audio file if it does not exist
-    print("Downloading: " + yt_url)
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(yt_url, download=True)
-        title = info['title']
-        ext = "mp3"
-        audio_file = ydl.prepare_filename(info)
-        audio_filename = (f"{title}.{ext}")
-        print("Downloaded: " + audio_filename)
-
-    # Save the audio data to json
+        ydl.prepare_filename(info)
+        audio_filename = info['title'] + '.mp3'
+        
     data = {
         'audio_filename': audio_filename,
         'yt_url': yt_url

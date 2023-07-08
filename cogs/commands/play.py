@@ -21,7 +21,7 @@ class Play(commands.Cog):
 
         channel = ctx.author.voice.channel
         voice = ctx.voice_client or await channel.connect()
-        print("Now playing: " + audio_filename)
+        print(audio_dir + audio_filename)
         voice.play(discord.FFmpegPCMAudio(executable=FFMPEG_PATH, source=audio_dir + audio_filename))
 
     
