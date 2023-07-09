@@ -3,6 +3,7 @@ import os
 import json
 from discord.ext import commands
 import re
+import sqlite3
 
 audio_dir = "C:/Users/mikel/Documents/Github/discord-music-bot/audio/" 
 json_file = "audio.json"
@@ -31,13 +32,21 @@ def removelist(yt_url):
 # Check if the audio file already exists
 def get_audio(yt_url):
     
-    if os.path.exists(json_file) and os.stat(json_file).st_size > 0:
-        with open(json_file, 'r', encoding='utf-8') as f:
-            json_data = json.load(f)
-        for data in json_data:
-            if data.get('yt_url') == yt_url:
-                return data.get('audio_filename')
-    return "not found"
+    conn = sqlite3.connect('audio.db')
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM audio WHERE yt_url = ?", (yt_url,))    
+    result = c.fetchone()
+    if result:
+        audio_filename, yt_url, duration, uploader = result
+        c.close()
+        conn.close()
+        return audio_filename
+    else:
+        c.close()
+        conn.close()
+        return "not found"
+
 
 # Download the audio file
 def download_audio(yt_url):
@@ -62,16 +71,16 @@ def download_audio(yt_url):
         'duration': f"{minutes:02d}:{seconds:02d}",
         'uploader': info['uploader'],
     }
-    if os.path.exists(json_file) and os.stat(json_file).st_size > 0:
-        with open(json_file, 'r+', encoding='utf-8') as f:
-            json_data = json.load(f)
-            json_data.append(data)
-            f.seek(0)
-            json.dump(json_data, f, ensure_ascii=False, indent=4)
-            f.truncate()
-    else:
-        with open(json_file, 'w', encoding='utf-8') as f:
-            json.dump([data], f, ensure_ascii=False, indent=4)
+
+    conn = sqlite3.connect('audio.db')
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO audio (audio_filename, yt_url, duration, uploader)
+        VALUES (?, ?, ?, ?)
+    ''', (data['audio_filename'], data['yt_url'], data['duration'], data['uploader']))
+    conn.commit()
+    c.close()
+    conn.close()
 
     return audio_filename
 
