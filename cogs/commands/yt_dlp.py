@@ -46,6 +46,8 @@ def download_audio(yt_url):
         info = ydl.extract_info(yt_url, download=False)
         ydl.prepare_filename(info)
         audio_filename = info['title']
+    
+    minutes, seconds = divmod(info['duration'], 60)
 
     audio_filename = sanitize_filename(audio_filename)
     ydl_opts['outtmpl'] = "/audio/" + audio_filename
@@ -56,7 +58,9 @@ def download_audio(yt_url):
         
     data = {
         'audio_filename': audio_filename,
-        'yt_url': yt_url
+        'yt_url': yt_url,
+        'duration': f"{minutes:02d}:{seconds:02d}",
+        'uploader': info['uploader'],
     }
     if os.path.exists(json_file) and os.stat(json_file).st_size > 0:
         with open(json_file, 'r+', encoding='utf-8') as f:
