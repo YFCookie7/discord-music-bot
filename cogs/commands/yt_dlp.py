@@ -1,6 +1,4 @@
 import yt_dlp
-import os
-import json
 from discord.ext import commands
 import re
 import sqlite3
@@ -40,14 +38,12 @@ def get_audio(yt_url):
 
     c.execute("SELECT * FROM audio WHERE yt_url = ?", (yt_url,))
     result = c.fetchone()
+    c.close()
+    conn.close()
     if result:
         audio_filename, yt_url, duration, uploader = result
-        c.close()
-        conn.close()
         return audio_filename
     else:
-        c.close()
-        conn.close()
         return "not found"
 
 

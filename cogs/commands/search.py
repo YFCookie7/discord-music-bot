@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import subprocess
 from cogs.commands.yt_dlp import (
-    removelist,
     get_audio,
     download_audio,
     audio_dir,
